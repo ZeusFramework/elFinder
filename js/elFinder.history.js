@@ -36,6 +36,10 @@ elFinder.prototype.history = function(fm) {
 			update  = true;
 		},
 		/**
+		 * Browser native history object
+		 */
+		nativeHistory = (fm.options.useBrowserHistory && window.history && window.history.pushState)? window.history : null,
+		/**
 		 * Open prev/next folder
 		 *
 		 * @Boolen  open next folder?
@@ -84,7 +88,7 @@ elFinder.prototype.history = function(fm) {
 	}
 	
 	// bind to elfinder events
-	fm.open(function(e) {
+	fm.open(function() {
 		var l = history.length,
 			cwd = fm.cwd().hash;
 
@@ -94,7 +98,15 @@ elFinder.prototype.history = function(fm) {
 			current = history.length - 1;
 		}
 		update = true;
+
+		if (nativeHistory) {
+			if (! nativeHistory.state) {
+				nativeHistory.replaceState({thash: cwd}, null, location.pathname + location.search + '#elf_' + cwd);
+			} else {
+				nativeHistory.state.thash != cwd && nativeHistory.pushState({thash: cwd}, null, location.pathname + location.search + '#elf_' + cwd);
+			}
+		}
 	})
-	.reload(reset);
+	.reload(fm.options.reloadClearHistory && reset);
 	
-}
+};
